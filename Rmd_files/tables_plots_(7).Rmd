@@ -1,0 +1,192 @@
+---
+title: "tables_plots"
+output: html_document
+date: "2025-12-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# WARNING: this chunk should only be run once unless you want really high values for the partial error rates
+PEout$means$emmean <- PEout$means$emmean*100
+
+PEout$means$SE <- PEout$means$SE*100
+```
+
+
+```{r}
+library(dplyr)
+library(emmeans)
+library(dplyr)
+library(gt)
+library(tibble)
+
+to_mean_se <- function(emm, prefix) {
+  as.data.frame(emm) %>%
+    transmute(
+      condition,
+      !!paste0(prefix, "_mean") := emmean,
+      !!paste0(prefix, "_se")   := SE
+    )
+}
+
+tab_df <- to_mean_se(ITout$means, "init") %>%
+  left_join(to_mean_se(RTout$means, "rt"), by = "condition") %>%
+  left_join(to_mean_se(MDout$means, "md"), by = "condition") %>%
+  left_join(to_mean_se(PEout$means, "pe"), by = "condition") %>%
+  # optional: enforce order
+  mutate(condition = factor(condition, levels = c("incongruous", "congruous"))) %>%
+  arrange(condition)
+
+tab_df <- tab_df %>%
+  mutate(
+    condition = forcats::fct_recode(
+      condition,
+      congruent   = "congruous",
+      incongruent = "incongruous"
+    )
+  )
+
+
+```
+
+
+
+```{r}
+
+## tab_df is your existing 2-row table produced from the emmeans objects
+## It must contain: condition, init_mean, init_se, rt_mean, rt_se, md_mean, md_se, pe_mean, pe_se
+
+# 1) Add a grouping variable for your existing rows
+tab_df2 <- tab_df %>%
+  mutate(row_set = "Current study")   # <- put any header text you want
+
+# 2) Create the two extra rows with the SAME columns as tab_df
+std_rows <- tibble(
+  condition = c("incongruent", "congruent"),
+  init_mean = c(169, 167),
+  init_se   = c(7.5, 7.5),
+  rt_mean   = c(1189, 1029),
+  rt_se     = c(18.9, 13.2),
+  md_mean   = c(0.676, 0.427),
+  md_se     = c(0.028, 0.019),
+  pe_mean   = c(36.7, 22.3),
+  pe_se     = c(1.39, 1.39),
+  row_set   = "Quetard et al."         # <- put any header text you want
+)
+
+# 3) Stack them
+tab_all <- bind_rows(tab_df2, std_rows)
+```
+
+
+
+
+
+```{r}
+# 4) Build the gt table with row-group headers and spacing separation
+gt_tbl3 <- tab_all %>%
+  gt(groupname_col = "row_set") %>%          # creates headers for each set of rows
+  cols_hide(columns = row_set) %>%           # hide the grouping column itself
+  cols_label(
+    condition = "",
+    init_mean = "Mean", init_se = "(SE)",
+    rt_mean   = "Mean", rt_se   = "(SE)",
+    md_mean   = "Mean", md_se   = "(SE)",
+    pe_mean   = "Mean", pe_se   = "(SE)"
+  ) %>%
+  tab_spanner("\u00A0", columns = condition) %>%
+  tab_spanner("Initiation time (ms)", columns = c(init_mean, init_se)) %>%
+  tab_spanner("Response time (ms)",   columns = c(rt_mean, rt_se)) %>%
+  tab_spanner("Maximum Deviation",    columns = c(md_mean, md_se)) %>%
+  tab_spanner("Partial error rates (%)", columns = c(pe_mean, pe_se)) %>%
+  # formatting (adjust decimals to your needs)
+  fmt_number(columns = init_mean, decimals = 0, use_seps = FALSE) %>%
+  fmt_number(columns = init_se,   decimals = 1, use_seps = FALSE) %>%
+  fmt_number(columns = rt_mean, decimals = 0, use_seps = FALSE) %>%
+  fmt_number(columns = rt_se,   decimals = 1, use_seps = FALSE)  %>%
+  fmt_number(columns = c(md_mean, md_se),     decimals = 3, use_seps = FALSE) %>%
+  fmt_number(columns = pe_mean, decimals = 1, use_seps = FALSE) %>%
+  fmt_number(columns = pe_se,   decimals = 2, use_seps = FALSE) %>%
+  # Initiation & RT SE
+  fmt(
+  columns = c(init_se, rt_se),
+  fns = function(x) paste0("(", formatC(x, format = "f", digits = 1), ")")
+) %>%
+
+# MD SE
+  fmt(
+  columns = md_se,
+  fns = function(x) paste0("(", formatC(x, format = "f", digits = 3), ")")
+) %>%
+
+# PE SE
+  fmt(
+  columns = pe_se,
+  fns = function(x) paste0("(", formatC(x, format = "f", digits = 2), ")")
+) %>%
+
+  cols_align(align = "left", columns = condition) %>%
+  tab_options(
+    table.font.names = "Times New Roman",
+    table.font.size  = 12
+  ) %>%
+  # 5) Add visible separation between the two row blocks
+  #    Make the second row-group label have a thicker top border (reads like spacing)
+  tab_style(
+    style = cell_borders(sides = "top", weight = px(2)),
+    locations = cells_row_groups(groups = "Current study")
+  ) %>%
+  tab_style(
+    style = cell_borders(sides = "top", weight = px(2)),
+    locations = cells_row_groups(groups = "Quetard et al.")
+  )  %>%
+  tab_style(
+  style = cell_borders(sides = "top", weight = px(0)),
+  locations = cells_column_labels(columns = condition)) %>%
+  tab_style(
+  style = cell_text(weight = "bold"),
+  locations = cells_row_groups()) %>%
+  tab_style(
+  style = cell_borders(sides = "top", weight = px(2)),
+  locations = cells_column_spanners()
+) %>%
+  tab_style(
+  style = cell_borders(
+    sides = "bottom",
+    color = "transparent"
+  ),
+  locations = cells_column_spanners(spanners = "\u00A0")
+) %>%
+  tab_style(
+  style = cell_borders(
+    sides = "top",
+    color = "transparent"
+  ),
+  locations = cells_column_labels(columns = condition)
+)
+
+
+  
+
+
+
+
+
+gt_tbl3
+```
+
+
+
+```{r}
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn", "df_pe", 
+                          "df_non_pe", "PEout", "ITout", "RTout", "MDout",
+                          "md_above_plot", "md_above_non_pe_plot", 
+                          "md_above_pe_plot", "md_above_merged_plot", "pe_prop",
+                          "gt_tbl3")
+                  ))
+```
+
+

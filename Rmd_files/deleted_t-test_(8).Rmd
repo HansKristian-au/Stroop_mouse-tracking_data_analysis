@@ -1,0 +1,140 @@
+---
+title: "T-test_md_above"
+output: html_document
+date: "2025-12-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#deleted sections from data analysis in stroop mouse tracking study
+
+###################################
+# Normality tests for md_above data
+###################################
+
+```{r}
+pe_prop_incong <- pe_prop %>% filter(condition == "incongruous")
+
+ggplot(pe_prop_incong, aes(x = pe_prop)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in incongruous trials")
+
+pe_prop_cong <- pe_prop %>% filter(condition == "congruous")
+
+ggplot(pe_prop_cong, aes(x = pe_prop)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in congruous trials")
+```
+
+
+```{r}
+pe_prop_incong$pe_prop_log <- log(pe_prop_incong$pe_prop)
+
+ggplot(pe_prop_incong, aes(x = pe_prop_log)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in incongruous trials (log transformed)")
+
+pe_prop_cong$pe_prop_log <- log(pe_prop_cong$pe_prop)
+
+ggplot(pe_prop_cong, aes(x = pe_prop_log)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in congruous trials (log transformed)")
+```
+
+
+```{r}
+pe_prop_incong$pe_prop_sq <- sqrt(pe_prop_incong$pe_prop)
+
+ggplot(pe_prop_incong, aes(x = pe_prop_sq)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in incongruous trials (sq transformed)")
+
+pe_prop_cong$pe_prop_sq <- sqrt(pe_prop_cong$pe_prop)
+
+ggplot(pe_prop_cong, aes(x = pe_prop_sq)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in congruous trials (sq transformed)")
+```
+
+
+```{r}
+pe_prop_incong$pe_prop_recipr <- 1 / pe_prop_incong$pe_prop
+
+ggplot(pe_prop_incong, aes(x = pe_prop_recipr)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in incongruous trials (reciprocally transformed)")
+
+pe_prop_cong$pe_prop_recipr <- 1 / pe_prop_cong$pe_prop
+
+ggplot(pe_prop_cong, aes(x = pe_prop_recipr)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "partial error rate in congruous trials (reciprocally transformed)")
+```
+
+
+```{r}
+# q-q plot and shapiro test for square-root transformed data
+
+library(ggplot2)
+
+ggplot(pe_prop_incong, aes(sample = pe_prop_sq)) +
+  stat_qq() +
+  stat_qq_line()
+
+
+ggplot(pe_prop_cong, aes(sample = pe_prop_sq)) +
+  stat_qq() +
+  stat_qq_line()
+
+
+shapiro.test(pe_prop_incong$pe_prop_sq)
+shapiro.test(pe_prop_cong$pe_prop_sq)
+
+```
+
+
+```{r}
+pe_prop_merged <- rbind(pe_prop_cong, pe_prop_incong)
+
+leveneTest(pe_prop_sq ~ condition, data = pe_prop_merged)
+
+```
+
+```{r}
+#data barely meets requirements for a t-test
+
+t.test(pe_prop_cong$pe_prop_sq, pe_prop_incong$pe_prop_sq, var.equal = FALSE)
+
+# p-value = 1.2e-05
+```
+
+
+
+
+```{r}
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn", "df_pe", 
+                          "df_non_pe", "PEout", "ITout", "RTout", "MDout",
+                          "md_above_plot", "md_above_non_pe_plot", 
+                          "md_above_pe_plot", "md_above_merged_plot", "pe_prop")
+                  ))
+```
+
+

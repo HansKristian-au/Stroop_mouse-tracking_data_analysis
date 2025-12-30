@@ -1,0 +1,165 @@
+---
+title: "Uni_or_Bimodal?"
+output: html_document
+date: "2025-12-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+```
+
+
+```{r}
+md_above_inc <- df %>% filter(condition == "incongruous")
+
+md_above_plot <- ggplot(md_above_inc, aes(x = md_above)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "md_above in all incongruous trials")
+
+
+rm(md_above_inc)
+```
+
+
+```{r}
+md_above_inc_non_pe <- df_non_pe %>% filter(condition == "incongruous")
+
+md_above_non_pe_plot <- ggplot(md_above_inc_non_pe, aes(x = md_above)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) + 
+  labs(title = "md_above in non-partial error incongruous trials")
+  
+
+rm(md_above_inc_non_pe)
+```
+
+
+```{r}
+md_above_inc_pe <- df_pe %>% filter(condition == "incongruous")
+
+md_above_pe_plot <- ggplot(md_above_inc_pe, aes(x = md_above)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(title = "md_above in partial error incongruous trials")
+
+
+rm(md_above_inc_pe)
+```
+
+
+
+
+
+```{r}
+md_above_plot
+md_above_non_pe_plot
+md_above_pe_plot
+```
+
+
+
+```{r}
+#creating non_pe and pe dataframes of equal length and merging them
+md_above_inc_non_pe <- df_non_pe %>% filter(condition == "incongruous")
+md_above_inc_pe <- df_pe %>% filter(condition == "incongruous")
+
+set.seed(123) 
+
+len_diff <- length(md_above_inc_non_pe$subject) - length(md_above_inc_pe$subject)
+
+n_remove <- len_diff
+
+idx_remove <- sample(seq_len(nrow(md_above_inc_non_pe)), n_remove)
+md_above_inc_non_pe_reduced <- md_above_inc_non_pe[-idx_remove, , drop = FALSE]
+
+md_above_inc_merged <- rbind(md_above_inc_non_pe_reduced, md_above_inc_pe)
+
+#plotting pe and reduced non-pe trials in one plot
+md_above_merged_plot <- ggplot(md_above_inc_merged, aes(x = md_above)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.04,
+                 fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) + 
+  labs(title = "md_above in all incongruos trials (equal number of pe & non-pe trials)")
+
+length(md_above_inc_non_pe_reduced$subject)
+length(md_above_inc_pe$subject)
+length(md_above_inc_merged$subject)
+
+#rm(len_diff, n_remove, idx_remove, md_above_inc_merged, md_above_inc_pe, md_above_inc_non_pe)
+```
+
+```{r}
+md_above_merged_plot
+md_above_plot
+```
+
+#########################
+#creating plots for paper
+#########################
+
+```{r}
+ggplot(md_above_inc_merged, aes(x = md_above)) +
+  geom_density(color = "red", linewidth = 1) +
+  scale_x_continuous(breaks = c(0.25, 0.5, 0.75)) +
+  theme_classic() +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text = element_text(color = "black", size = 14),
+    axis.title = element_text(color = "black", size = 16)
+  )
+```
+
+
+```{r}
+ggplot(md_above_inc_non_pe, aes(x = md_above)) +
+  geom_density(color = "red", linewidth = 1) +
+  scale_x_continuous(breaks = c(0.25, 0.5, 0.75)) +
+  theme_classic() +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text = element_text(color = "black", size = 24),
+    axis.title = element_text(color = "black", size = 26)
+  )
+
+ggplot(md_above_inc_pe, aes(x = md_above)) +
+  geom_density(color = "red", linewidth = 1) +
+  scale_x_continuous(breaks = c(0.25, 0.5, 0.75)) +
+  theme_classic() +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text = element_text(color = "black", size = 24),
+    axis.title = element_text(color = "black", size = 26)
+  )
+
+
+  
+
+
+
+
+```
+
+
+
+```{r}
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn", "df_pe", 
+                          "df_non_pe", "PEout", "ITout", "RTout", "MDout",
+                          "md_above_plot", "md_above_non_pe_plot", 
+                          "md_above_pe_plot", "md_above_merged_plot", "pe_prop")
+                  ))
+```
+

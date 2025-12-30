@@ -1,0 +1,271 @@
+---
+title: "Mixed_modelling"
+output: html_document
+date: "2025-12-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(lme4)
+library(emmeans)
+```
+
+```{r}
+#remove congruous condition
+df_2var <- df %>% filter(condition != "neutral")
+df_2var$condition <- factor(df_2var$condition,
+                       levels = c("congruous", "incongruous"))
+
+```
+
+
+```{r}
+#set the LMERcontrol parameters
+LMERparam = lmerControl(
+		optCtrl=list(maxfun=500000), 
+		check.conv.singular="warning", 
+		optimizer = 'bobyqa')
+
+```
+
+################
+#Initiation Time
+################
+
+```{r}
+#set the DV
+outcome = 'initiation_time_new_mousetrap_response'
+
+#build the full formula
+predictors_f = '~ condition + (condition | subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+#full model
+lmm_it_f = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_it_f)	#singular fit
+
+summary(rePCA(lmm_it_f))	#overfits the data
+```
+
+```{r}
+#removing correlation
+predictors_f = '~ condition + (condition || subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+lmm_it_no_corr = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_it_no_corr)	#singular fit
+
+summary(rePCA(lmm_it_no_corr))	#overfits the data
+```
+
+```{r}
+#intercept only model
+predictors_f = '~ condition + (1 | subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+lmm_it_io = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_it_io)	#singular fit
+
+summary(rePCA(lmm_it_io))	#overfits the data
+```
+
+```{r}
+### Fit the final model (c5) with restricted ML (required for estimating fixed effects)
+lmm = update(lmm_it_io, REML = T)
+summary(lmm)
+
+margm = emmeans(lmm, specs = "condition")		#marginal means
+comp = confint(pairs(margm, adjust = 'none'), level = 0.99)	#stroop components (estimated from pairwise comparisons)
+comp
+
+ITout = list('means' = summary(margm), 'comp' = comp)
+print(ITout)
+```
+
+
+##############
+#Response Time
+##############
+
+```{r}
+#set the DV
+outcome = 'response_time_new_mousetrap_response'
+
+#build the full formula
+predictors_f = '~ condition + (condition | subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+#full model
+lmm_rt_f = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_rt_f)
+
+summary(rePCA(lmm_rt_f))
+```
+
+```{r}
+#removing correlation
+predictors_f = '~ condition + (condition || subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+lmm_rt_no_corr = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_rt_no_corr)
+
+summary(rePCA(lmm_rt_no_corr))
+```
+
+```{r}
+#intercept only
+predictors_f = '~ condition + (1 | subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+lmm_rt_io = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_rt_io)
+
+summary(rePCA(lmm_rt_io))
+```
+
+```{r}
+### Fit the final model with restricted ML (required for estimating fixed effects)
+lmm = update(lmm_rt_io, REML = T)
+summary(lmm)
+
+margm = emmeans(lmm, specs = "condition")		#marginal means
+comp = confint(pairs(margm, adjust = 'none'), level = 0.99)	#stroop components (estimated from pairwise comparisons)
+comp
+
+RTout = list('means' = summary(margm), 'comp' = comp)
+print(RTout)
+```
+
+##########
+# MD_above
+##########
+
+```{r}
+#set the DV
+outcome = 'md_above'
+
+#build the full formula
+predictors_f = '~ condition + (condition| subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+#full model
+lmm_md_f = lmer(data = df_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_md_f)
+
+summary(rePCA(lmm_md_f))
+```
+
+```{r}
+### Fit the final model with restricted ML (required for estimating fixed effects)
+lmm = update(lmm_md_f, REML = T)
+summary(lmm)
+
+margm = emmeans(lmm, specs = "condition")		#marginal means
+comp = confint(pairs(margm, adjust = 'none'), level = 0.99)	#stroop components (estimated from pairwise comparisons)
+comp
+
+MDout = list('means' = summary(margm), 'comp' = comp)
+print(MDout)
+```
+
+###################
+# Stroop without PE
+###################
+
+```{r}
+df_2var_nonPE <- df_non_pe %>% filter(condition != "neutral")
+```
+
+
+
+```{r}
+#set the DV
+outcome = 'initiation_time_new_mousetrap_response'
+
+#same formula as with PE
+predictors_f = '~ condition + (1 | subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+lmm_it_nonPE = lmer(data = df_2var_nonPE, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_it_nonPE)
+
+summary(rePCA(lmm_it_nonPE))
+```
+
+```{r}
+lmm = update(lmm_it_nonPE, REML = T)
+#summary(lmm)
+
+margm = emmeans(lmm, specs = "condition")		#marginal means
+comp = confint(pairs(margm, adjust = 'none'), level = 0.99)	#stroop components (estimated from pairwise comparisons)
+#comp
+
+IT_nonPE_out = list('means' = summary(margm), 'comp' = comp)
+print(IT_nonPE_out)
+print(ITout) # removing PE trials has no significant effect on initiation time
+```
+
+```{r}
+#set the DV
+outcome = 'response_time_new_mousetrap_response'
+
+#same formula as with PE
+predictors_f = '~ condition + (1 | subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+
+lmm_rt_nonPE = lmer(data = df_2var_nonPE, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_rt_nonPE)
+
+summary(rePCA(lmm_rt_nonPE))
+```
+
+```{r}
+lmm = update(lmm_rt_nonPE, REML = T)
+#summary(lmm)
+
+margm = emmeans(lmm, specs = "condition")		#marginal means
+comp = confint(pairs(margm, adjust = 'none'), level = 0.99)	#stroop components (estimated from pairwise comparisons)
+#comp
+
+RT_nonPE_out = list('means' = summary(margm), 'comp' = comp)
+print(RT_nonPE_out)
+print(RTout)
+```
+
+
+```{r}
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn", "df_pe", 
+                          "df_non_pe", "PEout", "ITout", "RTout", "MDout", "pe_prop")
+                  ))
+```
+

@@ -1,0 +1,153 @@
+---
+title: "scaling_trajectories"
+output: html_document
+date: "2025-12-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Clean the mousetrap columns ------------------------------------------
+
+# Helper: strip np.float64(...) wrapper and "nan"
+clean_np_float_str <- function(x) {
+  x <- gsub("np\\.float64\\(", "", x)   # remove 'np.float64('
+  x <- gsub("\\)", "", x)               # remove ')'
+  x <- gsub("nan", "", x, ignore.case = TRUE)  # remove 'nan' tokens
+  x
+}
+
+df$xpos_clean <- clean_np_float_str(df$xpos_new_mousetrap_response)
+df$ypos_clean <- clean_np_float_str(df$ypos_new_mousetrap_response)
+df$timestamps_clean <- clean_np_float_str(df$timestamps_new_mousetrap_response)
+
+# Quick check
+#head(combined_df$xpos_new_mousetrap_response, 2)
+#head(combined_df$xpos_clean, 2)
+```
+
+```{r}
+# Import with mousetrap, using the cleaned columns - getting ready to calculate MAD
+
+library(mousetrap)
+
+mt_data <- mt_import_mousetrap(
+  df,
+  xpos_label       = "xpos_clean",
+  ypos_label       = "ypos_clean",
+  timestamps_label = "timestamps_clean",
+  split            = ","   # values inside each string are comma-separated
+)
+```
+
+```{r}
+### 1. Preprocess trajectories for clustering -------------------------------
+
+# a) Align trajectories (start at left, response on right, etc. - adapt as needed)
+mt_data_aligned <- mt_remap_symmetric(mt_data)
+```
+
+
+```{r}
+### removing trajectories from mt_data_aligned which will cause issues when we time normalize in b
+
+traj <- mt_data_aligned$trajectories
+vars <- dimnames(traj)[[3]]
+vars
+# should show: "timestamps" "xpos" "ypos"
+
+count_non_na <- function(v) sum(!is.na(v))
+
+bad_counts <- data.frame(
+  id = dimnames(traj)[[1]],
+  n_t = apply(traj[, , "timestamps", drop = TRUE], 1, count_non_na),
+  n_x = apply(traj[, , "xpos",       drop = TRUE], 1, count_non_na),
+  n_y = apply(traj[, , "ypos",       drop = TRUE], 1, count_non_na)
+)
+
+bad <- subset(bad_counts, n_t < 2 | n_x < 2 | n_y < 2)
+bad
+nrow(bad)
+
+```
+```{r}
+bad_ids <- c("id0719", "id1136", "id1186", "id1274")
+traj_ids <- dimnames(mt_data_aligned$trajectories)[[1]]
+bad_idx <- match(bad_ids, traj_ids)
+bad_idx
+
+```
+```{r}
+keep <- !(seq_along(traj_ids) %in% bad_idx)
+
+mt_data_aligned_clean <- mt_data_aligned
+mt_data_aligned_clean$data <-
+  mt_data_aligned$data[keep, , drop = FALSE]
+
+mt_data_aligned_clean$trajectories <-
+  mt_data_aligned$trajectories[keep, , , drop = FALSE]
+
+```
+
+
+```{r}
+# Same number of trials?
+nrow(mt_data_aligned_clean$data)
+dim(mt_data_aligned_clean$trajectories)[1]
+```
+
+
+```{r}
+# b) Time-normalize trajectories (same number of time steps per trial, e.g. 101)
+mt_data_tn <- mt_time_normalize(
+  mt_data_aligned_clean,
+  save_as = "tn",   # creates mt_data_tn$tn as time-normalized trajectories
+  nsteps = 101
+)
+
+```
+
+
+```{r}
+tn <- mt_data_tn$tn   # 3D array [trial, step, var]
+
+# Optional: if you have a logical keep vector (e.g. after RT trimming)
+# tn <- tn[keep, , , drop = FALSE]
+
+# Extract x and y matrices
+x <- tn[, , "xpos"]
+y <- tn[, , "ypos"]
+
+# Global min/max across ALL included trials and time steps
+x_min <- min(x, na.rm = TRUE)
+x_max <- max(x, na.rm = TRUE)
+y_min <- min(y, na.rm = TRUE)
+y_max <- max(y, na.rm = TRUE)
+
+# Rescale to [0, 1]
+tn[, , "xpos"] <- (x - x_min) / (x_max - x_min)
+tn[, , "ypos"] <- (y - y_min) / (y_max - y_min)
+
+# Put back into the mousetrap object
+mt_data_tn$tn <- tn
+```
+
+```{r}
+#checking whether scaling worked
+range(tn[, , "xpos"], na.rm = TRUE)
+range(tn[, , "ypos"], na.rm = TRUE)
+```
+```{r}
+measures = mt_measures(mt_data_tn, use = "tn")
+measures_MD = measures$measures
+mt_data_tn$data$md_above <- measures_MD$MD_above
+df <- mt_data_tn$data
+```
+
+```{r}
+#clean workspace
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn")))
+```
+

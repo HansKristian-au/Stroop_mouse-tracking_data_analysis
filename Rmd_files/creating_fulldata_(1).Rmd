@@ -1,0 +1,104 @@
+---
+title: "Creating_fulldata"
+output: html_document
+date: "2025-12-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+## 1. Define the folder and list candidate CSV files -----------------------
+
+
+data_dir <- "../logfiles_stroop"
+
+all_files <- list.files(
+  path       = data_dir,
+  pattern    = "\\.csv$",   # only CSV files
+  full.names = TRUE
+)
+
+## 2. Choose which & how many files to import ------------------------------
+##    Option A: take all
+selected_files <- all_files
+
+##    Option B: pick specific ones by index (example: first 3 files)
+# selected_files <- all_files[1:3]
+
+##    Option C: pick by name pattern (example: files containing "2025")
+# selected_files <- all_files[grepl("2025", all_files)]
+
+## 3. Read each file, drop first 32 rows, add ordinal file ID --------------
+
+df_list <- lapply(seq_along(selected_files), function(i) {
+  f <- selected_files[i]
+  
+  dat <- read.csv(f, stringsAsFactors = FALSE)
+  
+  # if fewer than or equal to 32 rows, skip this file
+  if (nrow(dat) <= 32L) return(NULL)
+  
+  # remove first 32 observations
+  dat_trimmed <- dat[-seq_len(32L), , drop = FALSE]
+  
+  # add ordinal file number as first column
+  dat_with_id <- data.frame(
+    subject = i,          # 1 for first file, 2 for second, etc.
+    dat_trimmed,
+    row.names = NULL
+  )
+  
+  dat_with_id
+})
+
+# Remove any NULL entries (files with <= 32 rows)
+df_list <- Filter(Negate(is.null), df_list)
+
+## 4. Bind all files into one data frame -----------------------------------
+
+combined_df <- do.call(rbind, df_list)
+
+## combined_df now:
+## - contains all selected files stacked under each other
+## - first column = file_id (1, 2, 3, … by file)
+## - first 32 rows of each original file removed
+
+```
+
+
+
+```{r}
+# remove non-response trials and incorrect responses
+combined_df <- combined_df[ is.na(combined_df$feedback_msg) | combined_df$feedback_msg == "" , ]
+```
+
+```{r}
+#remove trials where response time is outside 3sd's (for each participant x condition)
+cleaned_df <- combined_df %>%
+  group_by(subject, condition) %>%        # your column names here
+  mutate(
+    mean_rt = mean(response_time, na.rm = TRUE),        # your RT column here
+    sd_rt   = sd(response_time, na.rm = TRUE),
+    keep    = response_time >= mean_rt - 3 * sd_rt & 
+              response_time <= mean_rt + 3 * sd_rt
+  ) %>%
+  ungroup() %>%
+  filter(keep) %>%                            # keep only in-range trials
+  select(-mean_rt, -sd_rt, -keep)             # drop helper columns
+
+combined_df <- cleaned_df
+```
+
+
+```{r}
+#clean workspace
+df <- combined_df
+rm(list = setdiff(ls(), "df"))
+```
+

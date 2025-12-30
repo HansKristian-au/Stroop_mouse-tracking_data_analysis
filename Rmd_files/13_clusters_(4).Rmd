@@ -1,0 +1,90 @@
+---
+title: "13_clusters"
+output: html_document
+date: "2025-12-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(car)
+library(lme4)
+library(emmeans)
+```
+
+
+```{r}
+# calculating partial error rates for each participant in each condition.
+
+pe_prop <- df %>%
+  group_by(subject, condition) %>%
+  summarise(
+    pe_prop = mean(pe, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+pe_prop
+```
+
+
+```{r}
+pe_prop_2var <- pe_prop %>% filter(condition != "neutral")
+```
+
+
+############################
+# Mixed modeling of md_above
+############################
+
+
+```{r}
+#set the LMERcontrol parameters
+LMERparam = lmerControl(
+		optCtrl=list(maxfun=500000), 
+		check.conv.singular="warning", 
+		optimizer = 'bobyqa')
+
+```
+
+
+```{r}
+#set the DV
+outcome = 'pe_prop'
+
+#build the full formula
+predictors_f = '~ condition + (1|subject)'
+formula_f = as.formula(paste(outcome, predictors_f))
+
+### find the optimal random structure 
+#(only partici?nts random variable since word random variable is non significant, see later)
+
+#full model
+lmm_pe_f = lmer(data = pe_prop_2var, 
+		formula_f, REML = F,
+		control=LMERparam)
+summary(lmm_pe_f)
+
+summary(rePCA(lmm_pe_f))
+
+```
+
+```{r}
+### Fit the final model with restricted ML (required for estimating fixed effects)
+lmm = update(lmm_pe_f, REML = T)
+#summary(lmm)
+
+margm = emmeans(lmm, specs = "condition")		#marginal means
+comp = confint(pairs(margm, adjust = 'none'), level = 0.99)	#stroop components (estimated from pairwise comparisons)
+#comp
+
+PEout = list('means' = summary(margm), 'comp' = comp)
+print(PEout)
+```
+
+```{r}
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn", "df_pe", "df_non_pe", "PEout", "pe_prop")))
+```
+

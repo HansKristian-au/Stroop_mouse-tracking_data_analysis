@@ -1,0 +1,1316 @@
+---
+API: 3
+OpenSesame: 4.1.6
+Platform: nt
+---
+set width 1920
+set title test_experiment
+set subject_parity even
+set subject_nr 0
+set start experiment
+set sound_sample_size -16
+set sound_freq 48000
+set sound_channels 2
+set sound_buf_size 1024
+set sampler_backend legacy
+set round_decimals 2
+set psychopy_suppress_warnings yes
+set psychopy_gamma unchanged
+set mouse_backend legacy
+set keyboard_backend legacy
+set height 1080
+set fullscreen no
+set form_clicks no
+set foreground white
+set font_underline no
+set font_size 18
+set font_italic False
+set font_family mono
+set font_bold False
+set experiment_path "C:\\Users\\Fisk\\Desktop"
+set disable_garbage_collection False
+set description "The main experiment item"
+set color_backend legacy
+set clock_backend legacy
+set canvas_backend legacy
+set background "#3d3846"
+
+define inline_script CheckStartClick
+	set description "Executes Python code"
+	___run__
+	# --- Inline_script: check_start_click (RUN tab) ---
+	# This runs immediately after start_mouse
+	
+	# Did the click hit our ROI?
+	clicked_rois = cursor_roi.split(';') if cursor_roi else []
+	
+	if 'start_button' in clicked_rois:
+	    # Valid START click
+	    start_ok = 1
+	
+	    # Recenter mouse at button center (same as in the sketchpad)
+	    m = Mouse()
+	    m.show_cursor(True)        # make sure it is visible right when START is clicked
+	    m.set_pos((0, 450))        # use your actual button centre here
+	else:
+	    # Click somewhere else: not acceptable
+	    start_ok = 0
+	__end__
+	set _prepare ""
+
+define form_text_display Instructions
+	set timeout infinite
+	set spacing 10
+	set rows "1;4;1"
+	set only_render no
+	set ok_text START
+	set margins "50;50;50;50"
+	set form_title welcome
+	set form_text welcome
+	set description "A simple text display form"
+	set cols "1;1;1"
+	set _theme gray
+	widget 0 0 3 1 label text="{form_title}"
+	widget 0 1 3 1 label center=no text="{form_text}"
+	widget 1 2 1 1 button text="{ok_text}"
+
+
+define sketchpad Start_screen
+	set duration 0
+	set description "Displays stimuli"
+	draw rect color=white fill=0 h=128 name=start_button penwidth=1 show_if=True w=320 x=-160 y=384 z_index=0
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=25 html=yes show_if=True text="START<br />" x=0 y=465 z_index=0
+	draw fixdot color=white show_if=True style=default x=0 y=64 z_index=0
+	draw fixdot color=white show_if=True style=default x=1056 y=-96 z_index=0
+
+define inline_script count_down
+	set description "Executes Python code"
+	set _run ""
+	___prepare__
+	# PREPARE tab
+	canvas = Canvas()
+	
+	# RUN tab
+	for remaining in [3, 2, 1]:
+	    canvas.clear()
+	    canvas.text(f'Practice Trials\n\nStarting in {remaining} …')
+	    canvas.show()
+	    clock.sleep(1000)
+	__end__
+
+define inline_script count_down2
+	set description "Executes Python code"
+	___run__
+	# PREPARE tab
+	canvas = Canvas()
+	
+	# RUN tab
+	for remaining in [3, 2, 1]:
+	    canvas.clear()
+	    canvas.text(f'Experiment Trials\n\nStarting in {remaining} …')
+	    canvas.show()
+	    clock.sleep(1000)
+	__end__
+	set _prepare ""
+
+define sequence experiment
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run new_form_text_display True
+	run shuffle_trials True
+	run stimuli True
+
+define sketchpad experimenttrials
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=30 html=yes show_if=True text="Experiment Trials<br />" x=0 y=0 z_index=0
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=18 html=yes show_if=True text="press any key to continue<br /><br />" x=0 y=43 z_index=0
+
+define feedback feedback
+	set reset_variables yes
+	set duration 1200
+	set description "Provides feedback to the participant"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=36 html=yes show_if=True text="{feedback_msg}" x=0 y=0 z_index=0
+
+define notepad getting_started
+	__note__
+	Welcome to OpenSesame 4.1 "Neonatal Nightingale"!
+	If you are new to OpenSesame, it is a good idea to follow one of the tutorials,
+	which can be found on the documentation site:
+	- <http://osdoc.cogsci.nl/>
+	You can also check out the examples. These can be opened via:
+	- Menu -> Tools -> Example experiments.
+	And feel free to ask for help on the forum:
+	- <http://forum.cogsci.nl/>
+	Have fun with OpenSesame!
+	__end__
+	set description "A simple notepad to document your experiment. This plug-in does nothing."
+
+define form_text_display new_1_form_text_display
+	# Only the button widget, in the same cell as before
+	set timeout infinite
+	set spacing 10
+	set rows "1;4;1"
+	set only_render no
+	set ok_text START
+	set margins "50;50;50;50"
+	set form_text ""
+	set description "Start button only (same geometry)"
+	set cols "1;1;1"
+	set _theme gray
+	widget 1 2 1 1 button text="{ok_text}"
+
+
+define inline_script new_1_inline_script
+	set description "Executes Python code"
+	set _run ""
+	set _prepare ""
+
+define mouse_response new_1_mouse_response
+	set timeout infinite
+	set show_cursor yes
+	set linked_sketchpad new_sketchpad
+	set flush yes
+	set event_type mouseclick
+	set duration mouseclick
+	set description "Collects mouse responses"
+
+define sketchpad new_1_sketchpad
+	set duration keypress
+	set description "Displays stimuli"
+
+define inline_script new_2_inline_script
+	set description "Executes Python code"
+	set _run ""
+	set _prepare "font_colour_word = correct"
+
+define mouse_response new_2_mouse_response
+	set timeout infinite
+	set show_cursor yes
+	set linked_sketchpad Start_screen
+	set flush yes
+	set event_type mouseclick
+	set duration mouseclick
+	set description "Collects mouse responses"
+
+define form_text_display new_form_text_display
+	set timeout infinite
+	set spacing 10
+	set rows "1;4;1"
+	set only_render no
+	set ok_text Ok
+	set margins "50;50;50;50"
+	set form_title Title
+	set form_text "Your message"
+	set description "A simple text display form"
+	set cols "1;1;1"
+	set _theme gray
+	widget 1 2 1 1 button text="{ok_text}"
+
+
+define inline_script new_inline_script
+	set description "Executes Python code"
+	___run__
+	# Coordinates where you want the mouse to go (in sketchpad coordinates)
+	start_x = 0
+	start_y = 500
+	
+	# Create a Mouse object (cursor stays visible as before)
+	mouse = Mouse()
+	mouse.set_pos((start_x, start_y))
+	__end__
+	___prepare__
+	# Default: congruent (font colour = word)
+	font_colour_word = correct
+	__end__
+
+define logger new_logger
+	set description "Logs experimental data"
+	set auto_log yes
+
+define mouse_response new_mouse_response
+	set timeout infinite
+	set show_cursor yes
+	set linked_sketchpad present_stimulus
+	set flush yes
+	set event_type mouseclick
+	set duration mouseclick
+	set description "Collects mouse responses"
+
+define mousetrap_response new_mousetrap_response
+	__warning_message__
+	draw textline text="Please start moving" x=0 y=0
+	__end__
+	set update_feedback yes
+	set timeout 2501
+	set start_coordinates "0;280"
+	set skip_item no
+	set sketchpad ""
+	set save_trajectories yes
+	set reset_mouse no
+	set number_of_buttons 4
+	set mouse_buttons_allowed "left_button;right_button"
+	set max_initiation_time 1000
+	set logging_resolution 10
+	set description "Tracks mouse movements"
+	set correct_button "[correct]"
+	set click_required yes
+	set check_initiation_time no
+	set button4 "x=768 y=-443 w=-192 h=-96 name=[RU]"
+	set button3 "x=-768 y=-443 w=192 h=-96 name=[LU]"
+	set button2 "x=766 y=-416 w=192 h=96 name=[RD]"
+	set button1 "x=-958 y=-416 w=192 h=96 name=[LD]"
+	set boundaries "upper=no lower=no left=no right=no"
+
+define sketchpad new_sketchpad
+	set duration keypress
+	set description "Displays stimuli"
+
+define sketchpad practice_trials_msg
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=30 html=yes show_if=True text="Practice Trials<br />" x=0 y=0 z_index=0
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=18 html=yes show_if=True text="press any key to begin<br />" x=0 y=32 z_index=0
+
+define sketchpad present_stimulus
+	set duration 0
+	set description "Displays stimuli"
+	draw textline center=1 color="{font_colour_word}" font_bold=no font_family=mono font_italic=no font_size=36 html=yes show_if=True text="{ColourWord}<br />" x=0 y=64 z_index=0
+	draw rect color="#ffffff" fill=0 h=96 penwidth=1 show_if=True w=192 x=-958 y=-416 z_index=0
+	draw rect color="#ffffff" fill=0 h=96 penwidth=1 show_if=True w=192 x=766 y=-416 z_index=0
+	draw rect color="#ffffff" fill=0 h=-96 penwidth=1 show_if=True w=-192 x=768 y=-443 z_index=0
+	draw rect color="#ffffff" fill=0 h=-96 penwidth=1 show_if=True w=192 x=-768 y=-443 z_index=0
+	draw textline center=1 color="#ffffff" font_bold=no font_family=mono font_italic=no font_size=25 html=yes show_if=True text="[LD]<br />" x=-867 y=-352 z_index=0
+	draw textline center=1 color="#ffffff" font_bold=no font_family=mono font_italic=no font_size=25 html=yes show_if=True text="[LU]<br />" x=-672 y=-480 z_index=0
+	draw textline center=1 color="#ffffff" font_bold=no font_family=mono font_italic=no font_size=25 html=yes show_if=True text="[RU]<br />" x=672 y=-480 z_index=0
+	draw textline center=1 color="#ffffff" font_bold=no font_family=mono font_italic=no font_size=25 html=yes show_if=True text="[RD]" x=864 y=-370 z_index=0
+
+define inline_script set_feedback
+	set description "Executes Python code"
+	___run__
+	# Trial-wise feedback logic
+	
+	# Case 1: Too slow (no response within 2500 ms)
+	if response == "None" or response_time > 2500:
+	    feedback_msg = "TIME OUT"
+	
+	# Case 2: Wrong key within time
+	elif correct == 0:
+	    feedback_msg = "X"
+	
+	# Case 3: Correct and fast enough
+	else:
+	    feedback_msg = ""
+	__end__
+	set _prepare ""
+
+define inline_script shuffle_trials
+	set description "Executes Python code"
+	set _run ""
+	___prepare__
+	from datamatrix import operations as ops   # import operations
+	
+	loop_item = items['stimuli']   # change 'stimuli' if your loop has another name
+	
+	# dm is the original loop table (as defined in GUI or file), assumed 128 rows
+	dm = loop_item.dm
+	
+	# --- Choose which of the 4 sets this participant gets ---
+	# subject_nr is 1-based; we convert to 0..3
+	set_index = (subject_nr - 1) % 4   # 0,1,2,3
+	
+	# --- First 32 rows (0–31) ---
+	first32 = dm[:32]                  # 32 rows total
+	subset_first32 = first32[set_index::4]  # 8 rows for this set
+	
+	# Duplicate those 8 rows 4 times -> 32 rows
+	subset_first32 = ops.stack(
+	    subset_first32,
+	    subset_first32,
+	    subset_first32,
+	    subset_first32
+	)
+	
+	# --- Remaining rows (32–127) ---
+	rest = dm[32:]                     # 96 rows total
+	subset_rest = rest[set_index::4]   # 24 rows for this set
+	
+	# Duplicate those 24 rows 4 times -> 96 rows
+	subset_rest = ops.stack(
+	    subset_rest,
+	    subset_rest,
+	    subset_rest,
+	    subset_rest
+	)
+	
+	# --- Shuffle within each segment ---
+	subset_first32 = ops.shuffle(subset_first32)
+	subset_rest = ops.shuffle(subset_rest)
+	
+	# New loop table: first "block" shuffled, rest shuffled -> 32 + 96 = 128 rows
+	loop_item.dm = ops.stack(subset_first32, subset_rest)
+	__end__
+
+define form_text_display start_button
+	# Only the button widget, in the same cell as before
+	set timeout infinite
+	set spacing 10
+	set rows "1;4;1"
+	set only_render no
+	set ok_text START
+	set margins "50;50;50;50"
+	set form_text ""
+	set description "Start button only (same geometry)"
+	set cols "1;1;1"
+	set _theme gray
+	widget 1 2 1 1 button text="{ok_text}"
+
+
+define loop start_loop
+	set source_file ""
+	set source table
+	set repeat 1000
+	set order random
+	set description "Repeatedly runs another item"
+	set cycles 1
+	set continuous no
+	set break_if_on_first no
+	set break_if "start_ok == 1"
+	setcycle 0 empty_column ""
+	run start_sequence
+
+define sequence start_sequence
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run Start_screen True
+	run new_2_mouse_response True
+	run CheckStartClick True
+
+define loop stimuli
+	set source_file ""
+	set source table
+	set repeat 1
+	set order sequential
+	set description "Repeatedly runs another item"
+	set cycles 128
+	set continuous no
+	set break_if_on_first yes
+	set break_if False
+	setcycle 0 ColourWord xxxxxx
+	setcycle 0 LD red
+	setcycle 0 LU yellow
+	setcycle 0 RU blue
+	setcycle 0 RD green
+	setcycle 0 correct green
+	setcycle 0 condition incongruous
+	setcycle 1 ColourWord xxxxxx
+	setcycle 1 LD yellow
+	setcycle 1 LU red
+	setcycle 1 RU green
+	setcycle 1 RD blue
+	setcycle 1 correct green
+	setcycle 1 condition incongruous
+	setcycle 2 ColourWord xxxxxx
+	setcycle 2 LD blue
+	setcycle 2 LU green
+	setcycle 2 RU red
+	setcycle 2 RD yellow
+	setcycle 2 correct green
+	setcycle 2 condition incongruous
+	setcycle 3 ColourWord xxxxxx
+	setcycle 3 LD green
+	setcycle 3 LU blue
+	setcycle 3 RU yellow
+	setcycle 3 RD red
+	setcycle 3 correct green
+	setcycle 3 condition incongruous
+	setcycle 4 ColourWord xxxxxx
+	setcycle 4 LD red
+	setcycle 4 LU yellow
+	setcycle 4 RU blue
+	setcycle 4 RD green
+	setcycle 4 correct red
+	setcycle 4 condition congruous
+	setcycle 5 ColourWord xxxxxx
+	setcycle 5 LD yellow
+	setcycle 5 LU red
+	setcycle 5 RU green
+	setcycle 5 RD blue
+	setcycle 5 correct red
+	setcycle 5 condition congruous
+	setcycle 6 ColourWord xxxxxx
+	setcycle 6 LD blue
+	setcycle 6 LU green
+	setcycle 6 RU red
+	setcycle 6 RD yellow
+	setcycle 6 correct red
+	setcycle 6 condition congruous
+	setcycle 7 ColourWord xxxxxx
+	setcycle 7 LD green
+	setcycle 7 LU blue
+	setcycle 7 RU yellow
+	setcycle 7 RD red
+	setcycle 7 correct red
+	setcycle 7 condition congruous
+	setcycle 8 ColourWord xxxxxx
+	setcycle 8 LD red
+	setcycle 8 LU yellow
+	setcycle 8 RU blue
+	setcycle 8 RD green
+	setcycle 8 correct red
+	setcycle 8 condition incongruous
+	setcycle 9 ColourWord xxxxxx
+	setcycle 9 LD yellow
+	setcycle 9 LU red
+	setcycle 9 RU green
+	setcycle 9 RD blue
+	setcycle 9 correct red
+	setcycle 9 condition incongruous
+	setcycle 10 ColourWord xxxxxx
+	setcycle 10 LD blue
+	setcycle 10 LU green
+	setcycle 10 RU red
+	setcycle 10 RD yellow
+	setcycle 10 correct red
+	setcycle 10 condition incongruous
+	setcycle 11 ColourWord xxxxxx
+	setcycle 11 LD green
+	setcycle 11 LU blue
+	setcycle 11 RU yellow
+	setcycle 11 RD red
+	setcycle 11 correct red
+	setcycle 11 condition incongruous
+	setcycle 12 ColourWord xxxxxx
+	setcycle 12 LD red
+	setcycle 12 LU yellow
+	setcycle 12 RU blue
+	setcycle 12 RD green
+	setcycle 12 correct green
+	setcycle 12 condition congruous
+	setcycle 13 ColourWord xxxxxx
+	setcycle 13 LD yellow
+	setcycle 13 LU red
+	setcycle 13 RU green
+	setcycle 13 RD blue
+	setcycle 13 correct green
+	setcycle 13 condition congruous
+	setcycle 14 ColourWord xxxxxx
+	setcycle 14 LD blue
+	setcycle 14 LU green
+	setcycle 14 RU red
+	setcycle 14 RD yellow
+	setcycle 14 correct green
+	setcycle 14 condition congruous
+	setcycle 15 ColourWord xxxxxx
+	setcycle 15 LD green
+	setcycle 15 LU blue
+	setcycle 15 RU yellow
+	setcycle 15 RD red
+	setcycle 15 correct green
+	setcycle 15 condition congruous
+	setcycle 16 ColourWord xxxxxx
+	setcycle 16 LD red
+	setcycle 16 LU yellow
+	setcycle 16 RU blue
+	setcycle 16 RD green
+	setcycle 16 correct blue
+	setcycle 16 condition incongruous
+	setcycle 17 ColourWord xxxxxx
+	setcycle 17 LD yellow
+	setcycle 17 LU red
+	setcycle 17 RU green
+	setcycle 17 RD blue
+	setcycle 17 correct blue
+	setcycle 17 condition incongruous
+	setcycle 18 ColourWord xxxxxx
+	setcycle 18 LD blue
+	setcycle 18 LU green
+	setcycle 18 RU red
+	setcycle 18 RD yellow
+	setcycle 18 correct blue
+	setcycle 18 condition incongruous
+	setcycle 19 ColourWord xxxxxx
+	setcycle 19 LD green
+	setcycle 19 LU blue
+	setcycle 19 RU yellow
+	setcycle 19 RD red
+	setcycle 19 correct blue
+	setcycle 19 condition incongruous
+	setcycle 20 ColourWord xxxxxx
+	setcycle 20 LD red
+	setcycle 20 LU yellow
+	setcycle 20 RU blue
+	setcycle 20 RD green
+	setcycle 20 correct yellow
+	setcycle 20 condition congruous
+	setcycle 21 ColourWord xxxxxx
+	setcycle 21 LD yellow
+	setcycle 21 LU red
+	setcycle 21 RU green
+	setcycle 21 RD blue
+	setcycle 21 correct yellow
+	setcycle 21 condition congruous
+	setcycle 22 ColourWord xxxxxx
+	setcycle 22 LD blue
+	setcycle 22 LU green
+	setcycle 22 RU red
+	setcycle 22 RD yellow
+	setcycle 22 correct yellow
+	setcycle 22 condition congruous
+	setcycle 23 ColourWord xxxxxx
+	setcycle 23 LD green
+	setcycle 23 LU blue
+	setcycle 23 RU yellow
+	setcycle 23 RD red
+	setcycle 23 correct yellow
+	setcycle 23 condition congruous
+	setcycle 24 ColourWord xxxxxx
+	setcycle 24 LD red
+	setcycle 24 LU yellow
+	setcycle 24 RU blue
+	setcycle 24 RD green
+	setcycle 24 correct yellow
+	setcycle 24 condition incongruous
+	setcycle 25 ColourWord xxxxxx
+	setcycle 25 LD yellow
+	setcycle 25 LU red
+	setcycle 25 RU green
+	setcycle 25 RD blue
+	setcycle 25 correct yellow
+	setcycle 25 condition incongruous
+	setcycle 26 ColourWord xxxxxx
+	setcycle 26 LD blue
+	setcycle 26 LU green
+	setcycle 26 RU red
+	setcycle 26 RD yellow
+	setcycle 26 correct yellow
+	setcycle 26 condition incongruous
+	setcycle 27 ColourWord xxxxxx
+	setcycle 27 LD green
+	setcycle 27 LU blue
+	setcycle 27 RU yellow
+	setcycle 27 RD red
+	setcycle 27 correct yellow
+	setcycle 27 condition incongruous
+	setcycle 28 ColourWord xxxxxx
+	setcycle 28 LD red
+	setcycle 28 LU yellow
+	setcycle 28 RU blue
+	setcycle 28 RD green
+	setcycle 28 correct blue
+	setcycle 28 condition congruous
+	setcycle 29 ColourWord xxxxxx
+	setcycle 29 LD yellow
+	setcycle 29 LU red
+	setcycle 29 RU green
+	setcycle 29 RD blue
+	setcycle 29 correct blue
+	setcycle 29 condition congruous
+	setcycle 30 ColourWord xxxxxx
+	setcycle 30 LD blue
+	setcycle 30 LU green
+	setcycle 30 RU red
+	setcycle 30 RD yellow
+	setcycle 30 correct blue
+	setcycle 30 condition congruous
+	setcycle 31 ColourWord xxxxxx
+	setcycle 31 LD green
+	setcycle 31 LU blue
+	setcycle 31 RU yellow
+	setcycle 31 RD red
+	setcycle 31 correct blue
+	setcycle 31 condition congruous
+	setcycle 32 ColourWord red
+	setcycle 32 LD red
+	setcycle 32 LU yellow
+	setcycle 32 RU blue
+	setcycle 32 RD green
+	setcycle 32 correct green
+	setcycle 32 condition incongruous
+	setcycle 33 ColourWord red
+	setcycle 33 LD yellow
+	setcycle 33 LU red
+	setcycle 33 RU green
+	setcycle 33 RD blue
+	setcycle 33 correct green
+	setcycle 33 condition incongruous
+	setcycle 34 ColourWord red
+	setcycle 34 LD blue
+	setcycle 34 LU green
+	setcycle 34 RU red
+	setcycle 34 RD yellow
+	setcycle 34 correct green
+	setcycle 34 condition incongruous
+	setcycle 35 ColourWord red
+	setcycle 35 LD green
+	setcycle 35 LU blue
+	setcycle 35 RU yellow
+	setcycle 35 RD red
+	setcycle 35 correct green
+	setcycle 35 condition incongruous
+	setcycle 36 ColourWord red
+	setcycle 36 LD red
+	setcycle 36 LU yellow
+	setcycle 36 RU blue
+	setcycle 36 RD green
+	setcycle 36 correct red
+	setcycle 36 condition congruous
+	setcycle 37 ColourWord red
+	setcycle 37 LD yellow
+	setcycle 37 LU red
+	setcycle 37 RU green
+	setcycle 37 RD blue
+	setcycle 37 correct red
+	setcycle 37 condition congruous
+	setcycle 38 ColourWord red
+	setcycle 38 LD blue
+	setcycle 38 LU green
+	setcycle 38 RU red
+	setcycle 38 RD yellow
+	setcycle 38 correct red
+	setcycle 38 condition congruous
+	setcycle 39 ColourWord red
+	setcycle 39 LD green
+	setcycle 39 LU blue
+	setcycle 39 RU yellow
+	setcycle 39 RD red
+	setcycle 39 correct red
+	setcycle 39 condition congruous
+	setcycle 40 ColourWord green
+	setcycle 40 LD red
+	setcycle 40 LU yellow
+	setcycle 40 RU blue
+	setcycle 40 RD green
+	setcycle 40 correct red
+	setcycle 40 condition incongruous
+	setcycle 41 ColourWord green
+	setcycle 41 LD yellow
+	setcycle 41 LU red
+	setcycle 41 RU green
+	setcycle 41 RD blue
+	setcycle 41 correct red
+	setcycle 41 condition incongruous
+	setcycle 42 ColourWord green
+	setcycle 42 LD blue
+	setcycle 42 LU green
+	setcycle 42 RU red
+	setcycle 42 RD yellow
+	setcycle 42 correct red
+	setcycle 42 condition incongruous
+	setcycle 43 ColourWord green
+	setcycle 43 LD green
+	setcycle 43 LU blue
+	setcycle 43 RU yellow
+	setcycle 43 RD red
+	setcycle 43 correct red
+	setcycle 43 condition incongruous
+	setcycle 44 ColourWord green
+	setcycle 44 LD red
+	setcycle 44 LU yellow
+	setcycle 44 RU blue
+	setcycle 44 RD green
+	setcycle 44 correct green
+	setcycle 44 condition congruous
+	setcycle 45 ColourWord green
+	setcycle 45 LD yellow
+	setcycle 45 LU red
+	setcycle 45 RU green
+	setcycle 45 RD blue
+	setcycle 45 correct green
+	setcycle 45 condition congruous
+	setcycle 46 ColourWord green
+	setcycle 46 LD blue
+	setcycle 46 LU green
+	setcycle 46 RU red
+	setcycle 46 RD yellow
+	setcycle 46 correct green
+	setcycle 46 condition congruous
+	setcycle 47 ColourWord green
+	setcycle 47 LD green
+	setcycle 47 LU blue
+	setcycle 47 RU yellow
+	setcycle 47 RD red
+	setcycle 47 correct green
+	setcycle 47 condition congruous
+	setcycle 48 ColourWord yellow
+	setcycle 48 LD red
+	setcycle 48 LU yellow
+	setcycle 48 RU blue
+	setcycle 48 RD green
+	setcycle 48 correct blue
+	setcycle 48 condition incongruous
+	setcycle 49 ColourWord yellow
+	setcycle 49 LD yellow
+	setcycle 49 LU red
+	setcycle 49 RU green
+	setcycle 49 RD blue
+	setcycle 49 correct blue
+	setcycle 49 condition incongruous
+	setcycle 50 ColourWord yellow
+	setcycle 50 LD blue
+	setcycle 50 LU green
+	setcycle 50 RU red
+	setcycle 50 RD yellow
+	setcycle 50 correct blue
+	setcycle 50 condition incongruous
+	setcycle 51 ColourWord yellow
+	setcycle 51 LD green
+	setcycle 51 LU blue
+	setcycle 51 RU yellow
+	setcycle 51 RD red
+	setcycle 51 correct blue
+	setcycle 51 condition incongruous
+	setcycle 52 ColourWord yellow
+	setcycle 52 LD red
+	setcycle 52 LU yellow
+	setcycle 52 RU blue
+	setcycle 52 RD green
+	setcycle 52 correct yellow
+	setcycle 52 condition congruous
+	setcycle 53 ColourWord yellow
+	setcycle 53 LD yellow
+	setcycle 53 LU red
+	setcycle 53 RU green
+	setcycle 53 RD blue
+	setcycle 53 correct yellow
+	setcycle 53 condition congruous
+	setcycle 54 ColourWord yellow
+	setcycle 54 LD blue
+	setcycle 54 LU green
+	setcycle 54 RU red
+	setcycle 54 RD yellow
+	setcycle 54 correct yellow
+	setcycle 54 condition congruous
+	setcycle 55 ColourWord yellow
+	setcycle 55 LD green
+	setcycle 55 LU blue
+	setcycle 55 RU yellow
+	setcycle 55 RD red
+	setcycle 55 correct yellow
+	setcycle 55 condition congruous
+	setcycle 56 ColourWord blue
+	setcycle 56 LD red
+	setcycle 56 LU yellow
+	setcycle 56 RU blue
+	setcycle 56 RD green
+	setcycle 56 correct yellow
+	setcycle 56 condition incongruous
+	setcycle 57 ColourWord blue
+	setcycle 57 LD yellow
+	setcycle 57 LU red
+	setcycle 57 RU green
+	setcycle 57 RD blue
+	setcycle 57 correct yellow
+	setcycle 57 condition incongruous
+	setcycle 58 ColourWord blue
+	setcycle 58 LD blue
+	setcycle 58 LU green
+	setcycle 58 RU red
+	setcycle 58 RD yellow
+	setcycle 58 correct yellow
+	setcycle 58 condition incongruous
+	setcycle 59 ColourWord blue
+	setcycle 59 LD green
+	setcycle 59 LU blue
+	setcycle 59 RU yellow
+	setcycle 59 RD red
+	setcycle 59 correct yellow
+	setcycle 59 condition incongruous
+	setcycle 60 ColourWord blue
+	setcycle 60 LD red
+	setcycle 60 LU yellow
+	setcycle 60 RU blue
+	setcycle 60 RD green
+	setcycle 60 correct blue
+	setcycle 60 condition congruous
+	setcycle 61 ColourWord blue
+	setcycle 61 LD yellow
+	setcycle 61 LU red
+	setcycle 61 RU green
+	setcycle 61 RD blue
+	setcycle 61 correct blue
+	setcycle 61 condition congruous
+	setcycle 62 ColourWord blue
+	setcycle 62 LD blue
+	setcycle 62 LU green
+	setcycle 62 RU red
+	setcycle 62 RD yellow
+	setcycle 62 correct blue
+	setcycle 62 condition congruous
+	setcycle 63 ColourWord blue
+	setcycle 63 LD green
+	setcycle 63 LU blue
+	setcycle 63 RU yellow
+	setcycle 63 RD red
+	setcycle 63 correct blue
+	setcycle 63 condition congruous
+	setcycle 64 ColourWord red
+	setcycle 64 LD red
+	setcycle 64 LU yellow
+	setcycle 64 RU blue
+	setcycle 64 RD green
+	setcycle 64 correct green
+	setcycle 64 condition incongruous
+	setcycle 65 ColourWord red
+	setcycle 65 LD yellow
+	setcycle 65 LU red
+	setcycle 65 RU green
+	setcycle 65 RD blue
+	setcycle 65 correct green
+	setcycle 65 condition incongruous
+	setcycle 66 ColourWord red
+	setcycle 66 LD blue
+	setcycle 66 LU green
+	setcycle 66 RU red
+	setcycle 66 RD yellow
+	setcycle 66 correct green
+	setcycle 66 condition incongruous
+	setcycle 67 ColourWord red
+	setcycle 67 LD green
+	setcycle 67 LU blue
+	setcycle 67 RU yellow
+	setcycle 67 RD red
+	setcycle 67 correct green
+	setcycle 67 condition incongruous
+	setcycle 68 ColourWord red
+	setcycle 68 LD red
+	setcycle 68 LU yellow
+	setcycle 68 RU blue
+	setcycle 68 RD green
+	setcycle 68 correct red
+	setcycle 68 condition congruous
+	setcycle 69 ColourWord red
+	setcycle 69 LD yellow
+	setcycle 69 LU red
+	setcycle 69 RU green
+	setcycle 69 RD blue
+	setcycle 69 correct red
+	setcycle 69 condition congruous
+	setcycle 70 ColourWord red
+	setcycle 70 LD blue
+	setcycle 70 LU green
+	setcycle 70 RU red
+	setcycle 70 RD yellow
+	setcycle 70 correct red
+	setcycle 70 condition congruous
+	setcycle 71 ColourWord red
+	setcycle 71 LD green
+	setcycle 71 LU blue
+	setcycle 71 RU yellow
+	setcycle 71 RD red
+	setcycle 71 correct red
+	setcycle 71 condition congruous
+	setcycle 72 ColourWord green
+	setcycle 72 LD red
+	setcycle 72 LU yellow
+	setcycle 72 RU blue
+	setcycle 72 RD green
+	setcycle 72 correct red
+	setcycle 72 condition incongruous
+	setcycle 73 ColourWord green
+	setcycle 73 LD yellow
+	setcycle 73 LU red
+	setcycle 73 RU green
+	setcycle 73 RD blue
+	setcycle 73 correct red
+	setcycle 73 condition incongruous
+	setcycle 74 ColourWord green
+	setcycle 74 LD blue
+	setcycle 74 LU green
+	setcycle 74 RU red
+	setcycle 74 RD yellow
+	setcycle 74 correct red
+	setcycle 74 condition incongruous
+	setcycle 75 ColourWord green
+	setcycle 75 LD green
+	setcycle 75 LU blue
+	setcycle 75 RU yellow
+	setcycle 75 RD red
+	setcycle 75 correct red
+	setcycle 75 condition incongruous
+	setcycle 76 ColourWord green
+	setcycle 76 LD red
+	setcycle 76 LU yellow
+	setcycle 76 RU blue
+	setcycle 76 RD green
+	setcycle 76 correct green
+	setcycle 76 condition congruous
+	setcycle 77 ColourWord green
+	setcycle 77 LD yellow
+	setcycle 77 LU red
+	setcycle 77 RU green
+	setcycle 77 RD blue
+	setcycle 77 correct green
+	setcycle 77 condition congruous
+	setcycle 78 ColourWord green
+	setcycle 78 LD blue
+	setcycle 78 LU green
+	setcycle 78 RU red
+	setcycle 78 RD yellow
+	setcycle 78 correct green
+	setcycle 78 condition congruous
+	setcycle 79 ColourWord green
+	setcycle 79 LD green
+	setcycle 79 LU blue
+	setcycle 79 RU yellow
+	setcycle 79 RD red
+	setcycle 79 correct green
+	setcycle 79 condition congruous
+	setcycle 80 ColourWord yellow
+	setcycle 80 LD red
+	setcycle 80 LU yellow
+	setcycle 80 RU blue
+	setcycle 80 RD green
+	setcycle 80 correct blue
+	setcycle 80 condition incongruous
+	setcycle 81 ColourWord yellow
+	setcycle 81 LD yellow
+	setcycle 81 LU red
+	setcycle 81 RU green
+	setcycle 81 RD blue
+	setcycle 81 correct blue
+	setcycle 81 condition incongruous
+	setcycle 82 ColourWord yellow
+	setcycle 82 LD blue
+	setcycle 82 LU green
+	setcycle 82 RU red
+	setcycle 82 RD yellow
+	setcycle 82 correct blue
+	setcycle 82 condition incongruous
+	setcycle 83 ColourWord yellow
+	setcycle 83 LD green
+	setcycle 83 LU blue
+	setcycle 83 RU yellow
+	setcycle 83 RD red
+	setcycle 83 correct blue
+	setcycle 83 condition incongruous
+	setcycle 84 ColourWord yellow
+	setcycle 84 LD red
+	setcycle 84 LU yellow
+	setcycle 84 RU blue
+	setcycle 84 RD green
+	setcycle 84 correct yellow
+	setcycle 84 condition congruous
+	setcycle 85 ColourWord yellow
+	setcycle 85 LD yellow
+	setcycle 85 LU red
+	setcycle 85 RU green
+	setcycle 85 RD blue
+	setcycle 85 correct yellow
+	setcycle 85 condition congruous
+	setcycle 86 ColourWord yellow
+	setcycle 86 LD blue
+	setcycle 86 LU green
+	setcycle 86 RU red
+	setcycle 86 RD yellow
+	setcycle 86 correct yellow
+	setcycle 86 condition congruous
+	setcycle 87 ColourWord yellow
+	setcycle 87 LD green
+	setcycle 87 LU blue
+	setcycle 87 RU yellow
+	setcycle 87 RD red
+	setcycle 87 correct yellow
+	setcycle 87 condition congruous
+	setcycle 88 ColourWord blue
+	setcycle 88 LD red
+	setcycle 88 LU yellow
+	setcycle 88 RU blue
+	setcycle 88 RD green
+	setcycle 88 correct yellow
+	setcycle 88 condition incongruous
+	setcycle 89 ColourWord blue
+	setcycle 89 LD yellow
+	setcycle 89 LU red
+	setcycle 89 RU green
+	setcycle 89 RD blue
+	setcycle 89 correct yellow
+	setcycle 89 condition incongruous
+	setcycle 90 ColourWord blue
+	setcycle 90 LD blue
+	setcycle 90 LU green
+	setcycle 90 RU red
+	setcycle 90 RD yellow
+	setcycle 90 correct yellow
+	setcycle 90 condition incongruous
+	setcycle 91 ColourWord blue
+	setcycle 91 LD green
+	setcycle 91 LU blue
+	setcycle 91 RU yellow
+	setcycle 91 RD red
+	setcycle 91 correct yellow
+	setcycle 91 condition incongruous
+	setcycle 92 ColourWord blue
+	setcycle 92 LD red
+	setcycle 92 LU yellow
+	setcycle 92 RU blue
+	setcycle 92 RD green
+	setcycle 92 correct blue
+	setcycle 92 condition congruous
+	setcycle 93 ColourWord blue
+	setcycle 93 LD yellow
+	setcycle 93 LU red
+	setcycle 93 RU green
+	setcycle 93 RD blue
+	setcycle 93 correct blue
+	setcycle 93 condition congruous
+	setcycle 94 ColourWord blue
+	setcycle 94 LD blue
+	setcycle 94 LU green
+	setcycle 94 RU red
+	setcycle 94 RD yellow
+	setcycle 94 correct blue
+	setcycle 94 condition congruous
+	setcycle 95 ColourWord blue
+	setcycle 95 LD green
+	setcycle 95 LU blue
+	setcycle 95 RU yellow
+	setcycle 95 RD red
+	setcycle 95 correct blue
+	setcycle 95 condition congruous
+	setcycle 96 ColourWord balcony
+	setcycle 96 LD red
+	setcycle 96 LU yellow
+	setcycle 96 RU blue
+	setcycle 96 RD green
+	setcycle 96 correct green
+	setcycle 96 condition neutral
+	setcycle 97 ColourWord balcony
+	setcycle 97 LD yellow
+	setcycle 97 LU red
+	setcycle 97 RU green
+	setcycle 97 RD blue
+	setcycle 97 correct green
+	setcycle 97 condition neutral
+	setcycle 98 ColourWord balcony
+	setcycle 98 LD blue
+	setcycle 98 LU green
+	setcycle 98 RU red
+	setcycle 98 RD yellow
+	setcycle 98 correct green
+	setcycle 98 condition neutral
+	setcycle 99 ColourWord balcony
+	setcycle 99 LD green
+	setcycle 99 LU blue
+	setcycle 99 RU yellow
+	setcycle 99 RD red
+	setcycle 99 correct green
+	setcycle 99 condition neutral
+	setcycle 100 ColourWord balcony
+	setcycle 100 LD red
+	setcycle 100 LU yellow
+	setcycle 100 RU blue
+	setcycle 100 RD green
+	setcycle 100 correct red
+	setcycle 100 condition neutral
+	setcycle 101 ColourWord balcony
+	setcycle 101 LD yellow
+	setcycle 101 LU red
+	setcycle 101 RU green
+	setcycle 101 RD blue
+	setcycle 101 correct red
+	setcycle 101 condition neutral
+	setcycle 102 ColourWord balcony
+	setcycle 102 LD blue
+	setcycle 102 LU green
+	setcycle 102 RU red
+	setcycle 102 RD yellow
+	setcycle 102 correct red
+	setcycle 102 condition neutral
+	setcycle 103 ColourWord balcony
+	setcycle 103 LD green
+	setcycle 103 LU blue
+	setcycle 103 RU yellow
+	setcycle 103 RD red
+	setcycle 103 correct red
+	setcycle 103 condition neutral
+	setcycle 104 ColourWord dog
+	setcycle 104 LD red
+	setcycle 104 LU yellow
+	setcycle 104 RU blue
+	setcycle 104 RD green
+	setcycle 104 correct red
+	setcycle 104 condition neutral
+	setcycle 105 ColourWord dog
+	setcycle 105 LD yellow
+	setcycle 105 LU red
+	setcycle 105 RU green
+	setcycle 105 RD blue
+	setcycle 105 correct red
+	setcycle 105 condition neutral
+	setcycle 106 ColourWord dog
+	setcycle 106 LD blue
+	setcycle 106 LU green
+	setcycle 106 RU red
+	setcycle 106 RD yellow
+	setcycle 106 correct red
+	setcycle 106 condition neutral
+	setcycle 107 ColourWord dog
+	setcycle 107 LD green
+	setcycle 107 LU blue
+	setcycle 107 RU yellow
+	setcycle 107 RD red
+	setcycle 107 correct red
+	setcycle 107 condition neutral
+	setcycle 108 ColourWord dog
+	setcycle 108 LD red
+	setcycle 108 LU yellow
+	setcycle 108 RU blue
+	setcycle 108 RD green
+	setcycle 108 correct green
+	setcycle 108 condition neutral
+	setcycle 109 ColourWord dog
+	setcycle 109 LD yellow
+	setcycle 109 LU red
+	setcycle 109 RU green
+	setcycle 109 RD blue
+	setcycle 109 correct green
+	setcycle 109 condition neutral
+	setcycle 110 ColourWord dog
+	setcycle 110 LD blue
+	setcycle 110 LU green
+	setcycle 110 RU red
+	setcycle 110 RD yellow
+	setcycle 110 correct green
+	setcycle 110 condition neutral
+	setcycle 111 ColourWord dog
+	setcycle 111 LD green
+	setcycle 111 LU blue
+	setcycle 111 RU yellow
+	setcycle 111 RD red
+	setcycle 111 correct green
+	setcycle 111 condition neutral
+	setcycle 112 ColourWord cargo
+	setcycle 112 LD red
+	setcycle 112 LU yellow
+	setcycle 112 RU blue
+	setcycle 112 RD green
+	setcycle 112 correct blue
+	setcycle 112 condition neutral
+	setcycle 113 ColourWord cargo
+	setcycle 113 LD yellow
+	setcycle 113 LU red
+	setcycle 113 RU green
+	setcycle 113 RD blue
+	setcycle 113 correct blue
+	setcycle 113 condition neutral
+	setcycle 114 ColourWord cargo
+	setcycle 114 LD blue
+	setcycle 114 LU green
+	setcycle 114 RU red
+	setcycle 114 RD yellow
+	setcycle 114 correct blue
+	setcycle 114 condition neutral
+	setcycle 115 ColourWord cargo
+	setcycle 115 LD green
+	setcycle 115 LU blue
+	setcycle 115 RU yellow
+	setcycle 115 RD red
+	setcycle 115 correct blue
+	setcycle 115 condition neutral
+	setcycle 116 ColourWord cargo
+	setcycle 116 LD red
+	setcycle 116 LU yellow
+	setcycle 116 RU blue
+	setcycle 116 RD green
+	setcycle 116 correct yellow
+	setcycle 116 condition neutral
+	setcycle 117 ColourWord cargo
+	setcycle 117 LD yellow
+	setcycle 117 LU red
+	setcycle 117 RU green
+	setcycle 117 RD blue
+	setcycle 117 correct yellow
+	setcycle 117 condition neutral
+	setcycle 118 ColourWord cargo
+	setcycle 118 LD blue
+	setcycle 118 LU green
+	setcycle 118 RU red
+	setcycle 118 RD yellow
+	setcycle 118 correct yellow
+	setcycle 118 condition neutral
+	setcycle 119 ColourWord cargo
+	setcycle 119 LD green
+	setcycle 119 LU blue
+	setcycle 119 RU yellow
+	setcycle 119 RD red
+	setcycle 119 correct yellow
+	setcycle 119 condition neutral
+	setcycle 120 ColourWord bridge
+	setcycle 120 LD red
+	setcycle 120 LU yellow
+	setcycle 120 RU blue
+	setcycle 120 RD green
+	setcycle 120 correct yellow
+	setcycle 120 condition neutral
+	setcycle 121 ColourWord bridge
+	setcycle 121 LD yellow
+	setcycle 121 LU red
+	setcycle 121 RU green
+	setcycle 121 RD blue
+	setcycle 121 correct yellow
+	setcycle 121 condition neutral
+	setcycle 122 ColourWord bridge
+	setcycle 122 LD blue
+	setcycle 122 LU green
+	setcycle 122 RU red
+	setcycle 122 RD yellow
+	setcycle 122 correct yellow
+	setcycle 122 condition neutral
+	setcycle 123 ColourWord bridge
+	setcycle 123 LD green
+	setcycle 123 LU blue
+	setcycle 123 RU yellow
+	setcycle 123 RD red
+	setcycle 123 correct yellow
+	setcycle 123 condition neutral
+	setcycle 124 ColourWord bridge
+	setcycle 124 LD red
+	setcycle 124 LU yellow
+	setcycle 124 RU blue
+	setcycle 124 RD green
+	setcycle 124 correct blue
+	setcycle 124 condition neutral
+	setcycle 125 ColourWord bridge
+	setcycle 125 LD yellow
+	setcycle 125 LU red
+	setcycle 125 RU green
+	setcycle 125 RD blue
+	setcycle 125 correct blue
+	setcycle 125 condition neutral
+	setcycle 126 ColourWord bridge
+	setcycle 126 LD blue
+	setcycle 126 LU green
+	setcycle 126 RU red
+	setcycle 126 RD yellow
+	setcycle 126 correct blue
+	setcycle 126 condition neutral
+	setcycle 127 ColourWord bridge
+	setcycle 127 LD green
+	setcycle 127 LU blue
+	setcycle 127 RU yellow
+	setcycle 127 RD red
+	setcycle 127 correct blue
+	setcycle 127 condition neutral
+	run trial
+
+define sequence trial
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run practice_trials_msg "live_row == 0"
+	run experimenttrials "live_row == 32"
+	run start_loop True
+	run new_2_inline_script True
+	run present_stimulus True
+	run new_mousetrap_response True
+	run set_feedback True
+	run feedback feedback_msg
+	run new_logger True
+
+define sketchpad welcome
+	set start_response_interval no
+	set reset_variables no
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=serif font_italic=no font_size=32 html=yes show_if=True text="OpenSesame 4.1 <i>Neonatal Nightingale</i>" x=0 y=0 z_index=0
+

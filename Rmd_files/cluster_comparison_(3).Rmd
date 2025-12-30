@@ -1,0 +1,254 @@
+---
+title: "Clusters_comparison"
+output: html_document
+date: "2025-12-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(mousetrap)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+#clustering trajectories
+
+clnumbers <- c(3, 4, 6, 7, 8, 10, 11, 12, 13, 15, 20, 25, 30)
+
+for (i in clnumbers) {
+  
+  save_name <- paste0("cluster_h", i)
+  
+  # 1. Run clustering
+  mt_data_tn <- mt_cluster(
+    mt_data_tn,
+    use     = "tn",
+    method  = "hclust",
+    n_cluster = i,
+    save_as = save_name
+  )
+  
+  # 2. mt_cluster saved a 656x2 data.frame in mt_data_tn$measures[[save_name]]
+  #    with columns: cluster, id
+  cl_df  <- mt_data_tn[[save_name]]
+  cl_vec <- cl_df$cluster   # numeric cluster labels (length 656)
+  
+  # 3. Store numeric cluster + factor version in mt_data_tn$data
+  mt_data_tn$data[[save_name]]               <- cl_vec
+  mt_data_tn$data[[paste0(save_name, "_label")]] <- factor(cl_vec)
+}
+
+```
+
+
+```{r}
+# plotting the average cluster trajectories for each clustering with 3-15 clusters
+
+clnumbers <- head(clnumbers, -3)
+
+
+for (i in clnumbers){
+  p <-  mt_plot_aggregate(
+  mt_data_tn,
+  use   = "tn",
+  use2  = "data",
+  x     = "xpos",
+  y     = "ypos",
+  color = paste0("cluster_h",i,"_label")
+)
+  print(p)
+}
+```
+
+```{r}
+#creating lists of pe cluster labels
+
+pe_cl3 = c(3)
+pe_cl4 = c(3,4)
+pe_cl5 = c(4,5)
+pe_cl6 = c(4,5)
+pe_cl7 = c(1,5,6)
+pe_cl8 = c(1,5,6,8)
+pe_cl10 = c(1,5,6,9,10)
+pe_cl11 = c(5,6,7,10,11)
+pe_cl12 = c(6,7,8,11,12)
+pe_cl13 = c(6,7,8,11,13)
+pe_cl15 = c(6,7,8,9,12,15)
+```
+
+```{r}
+#creating 5/20 plots for clustering containing 20 & 25 cluster in order to distinguish clusters better.
+
+# Helper to subset a mousetrap object by cluster labels
+subset_mt_by_cluster <- function(mt, cluster_col, keep_levels) {
+  keep <- mt$data[[cluster_col]] %in% keep_levels
+  mt2 <- mt
+  mt2$data <- mt$data[keep, , drop = FALSE]
+  mt2$trajectories <- mt$trajectories[keep, , , drop = FALSE]
+  mt2
+}
+
+# Make 4 subsets (5 clusters each)
+#mt_1 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label",  1:5)
+#mt_2 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label",  6:10)
+#mt_3 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label", 11:15)
+#mt_4 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label", 16:20)
+
+# Plot each one
+#p1 <- mt_plot_aggregate(mt_1, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+#p2 <- mt_plot_aggregate(mt_2, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+#p3 <- mt_plot_aggregate(mt_3, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+#p4 <- mt_plot_aggregate(mt_4, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+
+
+# Make 5 subsets (5 clusters each)
+mt_1 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label",  1:5)
+mt_2 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label",  6:10)
+mt_3 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label", 11:15)
+mt_4 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label", 16:20)
+mt_5 <- subset_mt_by_cluster(mt_data_tn, "cluster_h25_label", 21:25)
+
+# Plot each one
+p1 <- mt_plot_aggregate(mt_1, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+p2 <- mt_plot_aggregate(mt_2, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+p3 <- mt_plot_aggregate(mt_3, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+p4 <- mt_plot_aggregate(mt_4, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+p5 <- mt_plot_aggregate(mt_5, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h25_label")
+
+p1; p2; p3; p4; p5
+
+```
+```{r}
+pe_cl20 = c(7,8,9,10,11,14,17,18,19,20)
+pe_cl25 = c(8, 9, 10, 11, 12, 17, 20, 21, 23, 25)
+```
+
+```{r}
+# doing subset clusters for clustering with 30 clusters
+
+# Make 6 subsets (5 clusters each)
+mt_1 <- subset_mt_by_cluster(mt_data_tn, "cluster_h30_label",  1:5)
+mt_2 <- subset_mt_by_cluster(mt_data_tn, "cluster_h30_label",  6:10)
+mt_3 <- subset_mt_by_cluster(mt_data_tn, "cluster_h30_label", 11:15)
+mt_4 <- subset_mt_by_cluster(mt_data_tn, "cluster_h30_label", 16:20)
+mt_5 <- subset_mt_by_cluster(mt_data_tn, "cluster_h30_label", 21:25)
+mt_6 <- subset_mt_by_cluster(mt_data_tn, "cluster_h30_label", 26:30)
+
+
+# Plot each one
+p1 <- mt_plot_aggregate(mt_1, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h30_label")
+p2 <- mt_plot_aggregate(mt_2, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h30_label")
+p3 <- mt_plot_aggregate(mt_3, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h30_label")
+p4 <- mt_plot_aggregate(mt_4, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h30_label")
+p5 <- mt_plot_aggregate(mt_5, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h30_label")
+p6 <- mt_plot_aggregate(mt_6, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h30_label")
+
+p1; p2; p3; p4; p5; p6
+```
+```{r}
+pe_cl30 = c(9, 10, 11, 13, 14, 15, 19, 21, 23, 25, 27, 29, 30)
+
+```
+
+
+
+```{r}
+#creating lists of boolean values. True if index row trajectory has pe cluster label, False if it has non-pe cluster label.
+
+idx3 = mt_data_tn$data$cluster_h3_label %in% pe_cl3
+idx4 = mt_data_tn$data$cluster_h4_label %in% pe_cl4
+idx5 = mt_data_tn$data$cluster_h5_label %in% pe_cl5
+idx6 = mt_data_tn$data$cluster_h6_label %in% pe_cl6
+idx7 = mt_data_tn$data$cluster_h7_label %in% pe_cl7
+idx8 = mt_data_tn$data$cluster_h8_label %in% pe_cl8
+idx10 = mt_data_tn$data$cluster_h10_label %in% pe_cl10
+idx11 = mt_data_tn$data$cluster_h11_label %in% pe_cl11
+idx12 = mt_data_tn$data$cluster_h12_label %in% pe_cl12
+idx13 = mt_data_tn$data$cluster_h13_label %in% pe_cl13
+idx15 = mt_data_tn$data$cluster_h15_label %in% pe_cl15
+idx20 = mt_data_tn$data$cluster_h20_label %in% pe_cl20
+idx25 = mt_data_tn$data$cluster_h25_label %in% pe_cl25
+idx30 = mt_data_tn$data$cluster_h30_label %in% pe_cl30
+```
+
+
+```{r}
+# finding the boundaries between stable clusterings
+identical(idx3, idx4) #False
+
+identical(idx4, idx6) #True
+
+identical(idx6, idx7) #False
+
+identical(idx7, idx10) #True
+
+identical(idx10, idx11) #False
+
+identical(idx11,idx12) #True
+
+identical(idx12,idx13) #False
+
+identical(idx13, idx15) #True
+
+identical(idx15, idx20) #True
+
+identical(idx20, idx25) #True 
+
+identical(idx25, idx30) #False
+```
+```{r}
+#most stable clustering is 13-25 clusters, making 13 the most useful number of clusters.
+
+df_pe <- mt_data_tn$data[idx13, , drop = FALSE]
+df_non_pe <- mt_data_tn$data[!idx13, , drop = FALSE]
+
+df$pe <- idx13
+```
+
+########################
+# making plots for paper
+########################
+
+```{r}
+ mt_plot_aggregate(
+  mt_data_tn,
+  use   = "tn",
+  use2  = "data",
+  x     = "xpos",
+  y     = "ypos",
+  color = "cluster_h13_label"
+)
+
+mt_13_cl <- subset_mt_by_cluster(mt_data_tn, "cluster_h13_label",  pe_cl13)
+plot_13_cl <- mt_plot_aggregate(mt_13_cl, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h13_label")
+plot_13_cl +
+  theme_classic() +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background  = element_rect(fill = "white", color = NA)
+  )
+
+mt_13_cl_nonPE <- subset_mt_by_cluster(mt_data_tn, "cluster_h13_label",  setdiff(1:13, pe_cl13))
+plot_13_cl_nonPE <- mt_plot_aggregate(mt_13_cl_nonPE, use="tn", use2="data", x="xpos", y="ypos", color="cluster_h13_label")
+plot_13_cl_nonPE +
+  theme_classic() +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background  = element_rect(fill = "white", color = NA)
+  )
+```
+
+
+
+```{r}
+rm(list = setdiff(ls(), c("df", "measures_MD", "mt_data_tn", "df_pe", "df_non_pe")))
+```
+
+
+
