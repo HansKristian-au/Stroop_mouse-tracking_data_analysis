@@ -1,1 +1,2 @@
-# Stroop_mouse-tracking_data_analysis
+## procedure
+Open all the rmd files in R 4.5.1 and press the 'run all' command for each file in the order specified by the number in brackets. This should produce all the results, graphs and tables reported in the paper. The order of the logfiles was rearranged when they were uploaded to git; If they are not rearranged back to the original order before running the RMD files some issues might occur.
